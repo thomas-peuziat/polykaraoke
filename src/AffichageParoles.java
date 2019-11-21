@@ -1,3 +1,5 @@
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -7,6 +9,8 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.util.Duration;
+
 
 public class AffichageParoles extends Application {
     @Override
@@ -45,10 +49,30 @@ public class AffichageParoles extends Application {
         //Adding scene to the stage
         stage.setScene(scene);
 
+
+
+        Timeline timeline = new Timeline(
+                new KeyFrame(
+                        Duration.seconds(9.48),
+                        actionEvent -> doSomething(text, "I got a feeling")),
+                new KeyFrame(
+                        Duration.seconds(13.65),
+                        actionEvent -> doSomething(text, "That tonight′s gona be a good night")));
+
         //Displaying the contents of the stage
         stage.show();
+
+        timeline.play();
+
     }
-    public static void main(String args[]){
+
+    private void doSomething(Text text, String newText) {
+        text.setText(newText);
+    }
+
+    public static void main(String[] args){
+
         launch(args);
+
     }
 }      

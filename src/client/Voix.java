@@ -1,6 +1,11 @@
 package client;
 
 import java.util.ArrayList;
+
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 
 class Voix {
@@ -41,5 +46,12 @@ class Voix {
 
     ArrayList<Parole> getListParoles() {
         return listParoles;
+    }
+
+    public void setFont (Color c, double x, double y) {
+        this.fxText.setFont(Font.font("verdana", FontWeight.NORMAL, FontPosture.REGULAR, 20));
+        this.fxText.setX(x);
+        this.fxText.setY(y);
+        this.fxText.setFill(c);
     }
 }

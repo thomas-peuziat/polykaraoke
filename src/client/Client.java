@@ -18,6 +18,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Scanner;
 
 public class Client extends Application {
 
@@ -107,35 +108,52 @@ public class Client extends Application {
         return listKeyFrames;
     }
 
+    void createVoix(String chemin) {
+        Scanner s = null;
+        try {
+            s = new Scanner(new File(chemin));
+            while (s.hasNextLine()) {
+                String ligne = s.nextLine();
+                String[] tab = ligne.split(":");
+                Voix v = new Voix(tab[0], tab[1], new Text());
+                this.allVoix.put(v.getNom(), v);
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("Fichier non trouve");
+        } finally {
+            s.close();
+        }
+    }
+
+    void createParoles(String chemin) {
+        Scanner s = null;
+        try {
+            s = new Scanner(new File(chemin));
+            while (s.hasNextLine()) {
+                String ligne = s.nextLine();
+                String[] tab = ligne.split(":");
+                Voix v = this.allVoix.get(tab[0]);
+                v.addParole(new Parole(tab[2], Double.parseDouble(tab[1]), Double.parseDouble(tab[3])));
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("Fichier non trouve");
+        } finally {
+            s.close();
+        }
+    }
+
     @Override
     public void start(Stage stage) {
 
         //serverCommunication("localhost");
+        createVoix("files/voix.txt");
+        createParoles("files/paroles.txt");
 
-        Text text1 = new Text();
-        Text text2 = new Text();
+        Voix voix1 = this.allVoix.get("Robert");
+        Voix voix2 = allVoix.get("Clara");
 
-        Voix voix1 = new Voix("Robert", "Chien", text1);
-        Voix voix2 = new Voix("Clara", "Femme", text2);
-
-        voix1.addParole(new Parole("waf waf waf", 5.2, 7.2));
-        voix1.addParole(new Parole("waf", 8.2, 10.8));
-
-        voix2.addParole(new Parole("Chanter c'est cool", 1.2, 4.0));
-        voix2.addParole(new Parole("C'est super de chanter", 10.2, 12));
-
-        text1.setFont(Font.font("verdana", FontWeight.NORMAL, FontPosture.REGULAR, 20));
-        text1.setX(20);
-        text1.setY(20);
-        text1.setFill(Color.BROWN);
-
-        text2.setFont(Font.font("verdana", FontWeight.NORMAL, FontPosture.REGULAR, 20));
-        text2.setX(20);
-        text2.setY(40);
-        text2.setFill(Color.RED);
-
-        this.allVoix.put(voix1.getNom(), voix1);
-        this.allVoix.put(voix2.getNom(), voix2);
+        voix1.setFont(Color.BROWN, 20,20);
+        voix2.setFont(Color.RED, 20,40);
 
         this.activatedVoix.add(allVoix.get("Robert"));
         this.activatedVoix.add(allVoix.get("Clara"));
@@ -143,9 +161,8 @@ public class Client extends Application {
         Timeline timeline = new Timeline();
         timeline.getKeyFrames().addAll(createKeyFrame(this.activatedVoix));
 
-
         //Creating a Group object
-        Group root = new Group(text1, text2);
+        Group root = new Group(voix1.getFxText(), voix2.getFxText());
 
         //Creating a scene object
         Scene scene = new Scene(root, 600, 400);

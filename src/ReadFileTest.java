@@ -15,10 +15,9 @@ public class ReadFileTest {
         byte[] bytesTxt = null; //Tableau contenant les bytes correspondants au fichier texte
         byte[] bytesTotal; // Tableau contenant tous les bytes
 
-
         Scanner s = null;
-
         PrintWriter fluxSortieParoles = null;
+        PrintWriter fluxSortieVoix = null;
         String titre;
 
         // Creation d'un fichier (en bytes) dans lequel seront stockes le midi et le texte
@@ -71,16 +70,20 @@ public class ReadFileTest {
             s = new Scanner(new File(chemin+"texteSortie.txt")).useDelimiter("\\n*/////\\n*");
             // Creation du fichier pour les paroles
             fluxSortieParoles = new PrintWriter(new FileOutputStream(chemin+"paroles.txt"));
+            // Creation du fichier pour les voix
+            fluxSortieVoix = new PrintWriter(new FileOutputStream(chemin+"voix.txt"));
             //Recup titre
             titre = s.next();
+            // Recup voix
+            fluxSortieVoix.print(s.next());
             // Recup paroles
             fluxSortieParoles.print(s.next());
-            System.out.println("Titre : "+titre);
         } catch (FileNotFoundException e) {
             System.out.println("Fichier non trouve");
         } finally {
             s.close();
             fluxSortieParoles.close();
+            fluxSortieVoix.close();
         }
 
     }

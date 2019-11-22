@@ -1,8 +1,3 @@
-blablabla
-/////
-Robert:Chien
-Clara:Femme
-/////
 Robert:5.2:waf waf waf:7.2
 Robert:8.2:waf:10.8
 Clara:1.2:Chanter c'est cool:4.0

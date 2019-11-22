@@ -2,18 +2,24 @@ package client;
 
 class Parole {
     private String phrase;
-    private double timestampSecond;
+    private double timestampSecondStart;
+    private double timestampSecondStop;
 
-    Parole(String phrase, double timestampSecond) {
+    Parole(String phrase, double timestampSecondStart, double timestampSecondStop) {
         this.phrase = phrase;
-        this.timestampSecond = timestampSecond;
+        this.timestampSecondStart = timestampSecondStart;
+        this.timestampSecondStop = timestampSecondStop;
     }
 
     String getPhrase() {
         return phrase;
     }
 
-    double getTimestampSecond() {
-        return timestampSecond;
+    double getTimestampSecondStart() {
+        return timestampSecondStart;
+    }
+
+    public double getTimestampSecondStop() {
+        return timestampSecondStop;
     }
 }

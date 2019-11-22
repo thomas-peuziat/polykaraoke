@@ -94,8 +94,13 @@ public class Client extends Application {
             ArrayList<Parole> listParoles = new ArrayList<>(voix.getListParoles());
             for (Parole parole : listParoles) {
                 KeyFrame keyframe = new KeyFrame(
-                        Duration.seconds(parole.getTimestampSecond()),
+                        Duration.seconds(parole.getTimestampSecondStart()),
                         actionEvent -> voix.updateText(parole));
+                listKeyFrames.add(keyframe);
+
+                keyframe = new KeyFrame(
+                        Duration.seconds(parole.getTimestampSecondStop()),
+                        actionEvent -> voix.clearText());
                 listKeyFrames.add(keyframe);
             }
         }
@@ -113,16 +118,11 @@ public class Client extends Application {
         Voix voix1 = new Voix("Robert", "Chien", text1);
         Voix voix2 = new Voix("Clara", "Femme", text2);
 
-        Parole parole1 = new Parole("J'adore chanter", 5.2);
-        Parole parole2 = new Parole("C'est super de chanter", 10.2);
-        Parole parole3 = new Parole("Chanter c'est cool", 1.2);
-        Parole parole4 = new Parole("Chanter oui chanter oui", 8.2);
+        voix1.addParole(new Parole("waf waf waf", 5.2, 7.2));
+        voix1.addParole(new Parole("waf", 8.2, 10.8));
 
-        voix1.addParole(parole1);
-        voix1.addParole(parole4);
-
-        voix2.addParole(parole3);
-        voix2.addParole(parole2);
+        voix2.addParole(new Parole("Chanter c'est cool", 1.2, 4.0));
+        voix2.addParole(new Parole("C'est super de chanter", 10.2, 12));
 
         text1.setFont(Font.font("verdana", FontWeight.NORMAL, FontPosture.REGULAR, 20));
         text1.setX(20);

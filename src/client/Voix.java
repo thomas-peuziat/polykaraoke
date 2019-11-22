@@ -23,6 +23,10 @@ class Voix {
         this.fxText.setText("[" + this.nom + "] : " + parole.getPhrase());
     }
 
+    void clearText(){
+        this.fxText.setText("[" + this.nom + "] : ");
+    }
+
     public Text getFxText() {
         return fxText;
     }

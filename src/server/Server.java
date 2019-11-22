@@ -1,8 +1,10 @@
+package server;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class ServerTest {
+public class Server {
 
     public static void main(String[] args) {
 

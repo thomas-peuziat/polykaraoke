@@ -5,3 +5,6 @@ polykaraoke.iml
 
 # MacOS
 .DS_Store
+
+# Fichiers temporaires
+files

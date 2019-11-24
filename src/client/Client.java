@@ -6,13 +6,11 @@ import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontPosture;
-import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import javax.sound.midi.*;
 import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -21,9 +19,6 @@ import java.util.HashMap;
 import java.util.Scanner;
 
 public class Client extends Application {
-
-    private HashMap<String, Voix> allVoix = new HashMap<>();
-    private ArrayList<Voix> activatedVoix = new ArrayList<>();
 
     private void serverCommunication(final String serverHost){
         Socket socketOfClient;
@@ -108,58 +103,67 @@ public class Client extends Application {
         return listKeyFrames;
     }
 
-    void createVoix(String chemin) {
-        Scanner s = null;
-        try {
-            s = new Scanner(new File(chemin));
-            while (s.hasNextLine()) {
-                String ligne = s.nextLine();
-                String[] tab = ligne.split(":");
-                Voix v = new Voix(tab[0], tab[1], new Text());
-                this.allVoix.put(v.getNom(), v);
-            }
-        } catch (FileNotFoundException e) {
-            System.out.println("Fichier non trouve");
-        } finally {
-            s.close();
-        }
-    }
 
-    void createParoles(String chemin) {
-        Scanner s = null;
+    private Sequencer launchMidi(File midiFile, float tempoFactor) {
+        Sequencer sequencer = null;
         try {
-            s = new Scanner(new File(chemin));
-            while (s.hasNextLine()) {
-                String ligne = s.nextLine();
-                String[] tab = ligne.split(":");
-                Voix v = this.allVoix.get(tab[0]);
-                v.addParole(new Parole(tab[2], Double.parseDouble(tab[1]), Double.parseDouble(tab[3])));
-            }
-        } catch (FileNotFoundException e) {
-            System.out.println("Fichier non trouve");
-        } finally {
-            s.close();
+            Sequence sequence = MidiSystem.getSequence(midiFile);
+            sequencer = MidiSystem.getSequencer();
+            sequencer.open();
+            sequencer.setSequence(sequence);
+            sequencer.setTempoFactor(tempoFactor);
+            sequencer.start();
+        } catch (MidiUnavailableException | InvalidMidiDataException | IOException e) {
+            e.printStackTrace();
         }
+
+        return sequencer;
     }
 
     @Override
     public void start(Stage stage) {
 
         //serverCommunication("localhost");
-        createVoix("files/voix.txt");
-        createParoles("files/paroles.txt");
+        //createVoix("files/voix.txt");
+        //createParoles("files/paroles.txt");
 
-        Voix voix1 = this.allVoix.get("Robert");
-        Voix voix2 = allVoix.get("Clara");
+        // TODO Il faut que le serveur communique sur la taille du fichier midi
+        //long tailleMidi = ;
+        //Parser parser = new Parser();
+        //parser.createMidAndPKST("files/medley", tailleMidi);
+
+        // TODO Cette partie est temporaire, en attendant l'automatisation via Parser
+        Text text1 = new Text();
+        Text text2 = new Text();
+
+        Voix voix1 = new Voix("Robert", "Chien", text1);
+        Voix voix2 = new Voix("Clara", "Femme", text2);
+
+        voix1.addParole(new Parole("waf waf waf", 5.2, 7.2));
+        voix1.addParole(new Parole("waf", 8.2, 10.8));
+
+        voix2.addParole(new Parole("Chanter c'est cool", 1.2, 4.0));
+        voix2.addParole(new Parole("C'est super de chanter", 10.2, 12));
 
         voix1.setFont(Color.BROWN, 20,20);
         voix2.setFont(Color.RED, 20,40);
 
-        this.activatedVoix.add(allVoix.get("Robert"));
-        this.activatedVoix.add(allVoix.get("Clara"));
+        HashMap<String, Voix> allVoix = new HashMap<>();
+        allVoix.put(voix1.getNom(), voix1);
+        allVoix.put(voix2.getNom(), voix2);
+        // ----
+
+        File midiFile = new File("files/medley.mid");
+        Morceau morceau = new Morceau("titre", allVoix, midiFile);
+
+        // TODO Ajouter processus pour choisir les Voix.
+        ArrayList<Voix> activatedVoix = new ArrayList<>();
+        activatedVoix.add(allVoix.get("Robert"));
+        activatedVoix.add(allVoix.get("Clara"));
+        // ----
 
         Timeline timeline = new Timeline();
-        timeline.getKeyFrames().addAll(createKeyFrame(this.activatedVoix));
+        timeline.getKeyFrames().addAll(createKeyFrame(activatedVoix));
 
         //Creating a Group object
         Group root = new Group(voix1.getFxText(), voix2.getFxText());
@@ -176,7 +180,10 @@ public class Client extends Application {
         //Displaying the contents of the stage
         stage.show();
 
+        Sequencer sequencer = launchMidi(midiFile, 1);
         timeline.play();
+
+        // TODO Ajouter processus pour mettre en pause
 
     }
 

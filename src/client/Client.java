@@ -9,6 +9,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import message.Message;
 
 import javax.sound.midi.*;
 import java.io.*;
@@ -24,19 +25,33 @@ public class Client extends Application {
         Socket socketOfClient;
         BufferedWriter os;
         BufferedReader is;
-
+        /*ObjectInputStream in;
+        ObjectOutputStream out;
+        Message m = new Message();*/
         try {
 
             // Send a request to connect to the server is listening
             // on machine 'localhost' port 9999.
             socketOfClient = new Socket(serverHost, 9999);
-
             // Create output stream at the client (to send data to the server)
             os = new BufferedWriter(new OutputStreamWriter(socketOfClient.getOutputStream()));
 
 
-            // Input stream at Client (Receive data from the server).
+            //Input stream at Client (Receive data from the server).
             is = new BufferedReader(new InputStreamReader(socketOfClient.getInputStream()));
+            /*System.out.println("Lecture 1");
+            out = new ObjectOutputStream(new BufferedOutputStream(socketOfClient.getOutputStream()));
+            in = new ObjectInputStream(new BufferedInputStream(socketOfClient.getInputStream()));*/
+
+
+
+            /*System.out.println("Lecture");
+            m = (Message) in.readObject();
+            System.out.println("Taille : " + m.getTailleMidi());
+
+            in.close();
+            out.close();
+            socketOfClient.close();*/
 
         } catch (UnknownHostException e) {
             System.err.println("Don't know about host " + serverHost);
@@ -44,7 +59,21 @@ public class Client extends Application {
         } catch (IOException e) {
             System.err.println("Couldn't get I/O for the connection to " + serverHost);
             return;
+        } /*catch (ClassNotFoundException e) {
+            System.out.println("ClassNotFoundException");
+        }*/
+
+        /*try {
+            System.out.println("Lecture");
+            m = (Message) in.readObject();
+        } catch (IOException e) {
+            System.out.println("IOException");
+        } catch (ClassNotFoundException e) {
+            System.out.println("ClassNotFoundException");
         }
+
+        System.out.println("Taille : " + m.getTailleMidi());
+        */
 
         try {
 
@@ -75,6 +104,8 @@ public class Client extends Application {
 
             os.close();
             is.close();
+            //in.close();
+            //out.close();
             socketOfClient.close();
         } catch (UnknownHostException e) {
             System.err.println("Trying to connect to unknown host: " + e);
@@ -126,14 +157,37 @@ public class Client extends Application {
         //serverCommunication("localhost");
         //createVoix("files/voix.txt");
         //createParoles("files/paroles.txt");
+        Message m2= new Message();
+        Morceau morceauTest = new Morceau();
 
-        // TODO Il faut que le serveur communique sur la taille du fichier midi
-        //long tailleMidi = ;
-        //Parser parser = new Parser();
-        //parser.createMidAndPKST("files/medley", tailleMidi);
+        // Deserialisation du message recu
+        ObjectInputStream ois = null;
+        try {
+            final FileInputStream fichier = new FileInputStream("files/message.ser");
+            ois = new ObjectInputStream(fichier);
+            m2 = (Message) ois.readObject();
+        } catch (final java.io.IOException e) {
+            e.printStackTrace();
+        } catch (final ClassNotFoundException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (ois != null) {
+                    ois.close();
+                }
+            } catch (final IOException ex) {
+                ex.printStackTrace();
+            }
+        }
 
-        // TODO Cette partie est temporaire, en attendant l'automatisation via Parser
-        Text text1 = new Text();
+        //
+        long tailleMidi = m2.getTailleMidi();
+        Parser parser = new Parser();
+        parser.createMidAndPKST(m2.getBytesTotal(), tailleMidi);
+        parser.createVoixParoles(morceauTest, "files/texte.pkst");
+
+        //
+        /*Text text1 = new Text();
         Text text2 = new Text();
 
         Voix voix1 = new Voix("Robert", "Chien", text1);
@@ -150,16 +204,21 @@ public class Client extends Application {
 
         HashMap<String, Voix> allVoix = new HashMap<>();
         allVoix.put(voix1.getNom(), voix1);
-        allVoix.put(voix2.getNom(), voix2);
+        allVoix.put(voix2.getNom(), voix2);*/
         // ----
+        Voix voix1 = morceauTest.getVoix("Robert");
+        Voix voix2 = morceauTest.getVoix("Clara");
+        voix1.setFont(Color.BROWN, 20,20);
+        voix2.setFont(Color.RED, 20,40);
 
-        File midiFile = new File("files/medley.mid");
-        Morceau morceau = new Morceau("titre", allVoix, midiFile);
+        File midiFile = new File("files/midi.mid");
+        //Morceau morceau = new Morceau("titre", allVoix, midiFile);
+        morceauTest.setFile(midiFile);
 
         // TODO Ajouter processus pour choisir les Voix.
         ArrayList<Voix> activatedVoix = new ArrayList<>();
-        activatedVoix.add(allVoix.get("Robert"));
-        activatedVoix.add(allVoix.get("Clara"));
+        activatedVoix.add(voix1);
+        activatedVoix.add(voix2);
         // ----
 
         Timeline timeline = new Timeline();
@@ -190,6 +249,7 @@ public class Client extends Application {
     public static void main(String[] args) {
 
         launch(args);
+        //serverCommunication("localhost");
     }
 
 }

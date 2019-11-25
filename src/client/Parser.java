@@ -1,22 +1,26 @@
 package client;
 
+import javafx.scene.text.Text;
+
 import java.io.*;
 import java.nio.file.Files;
+import java.util.Scanner;
 
 public class Parser {
 
-    void createMidAndPKST(String inputPath, long tailleMidi) {
+    void createMidAndPKST(byte[] bytesTotal, long tailleMidi) {
         byte[] bytesMidi = null; //Tableau contenant les bytes correspondants au fichier midi
         byte[] bytesTxt = null; //Tableau contenant les bytes correspondants au fichier texte
-        byte[] bytesTotal; // Tableau contenant tous les bytes
+        //byte[] bytesTotal; // Tableau contenant tous les bytes
 
-        File fileTotal = new File(inputPath);
-        String directory = fileTotal.getParent() + "/";
+        //File fileTotal = new File(inputPath);
+        //String directory = fileTotal.getParent() + "/";
+        String directory = "files/";
 
         // Recuperation des bytes correspondants au midi et au texte et
         try {
             // Recuperation de tous les bytes dans un tableau
-            bytesTotal = Files.readAllBytes(fileTotal.toPath());
+            //bytesTotal = Files.readAllBytes(fileTotal.toPath());
             bytesMidi = new byte[(int) tailleMidi];
 
             //Copie des bytes correspondants au fichier midi
@@ -30,8 +34,10 @@ public class Parser {
             }
 
             //Creation des fichiers midi et texte correspondants
-            OutputStream midi = new FileOutputStream(new File(directory + fileTotal.getName() + ".mid"));
-            OutputStream txt = new FileOutputStream(new File(directory + fileTotal.getName() + ".pkst"));
+            //OutputStream midi = new FileOutputStream(new File(directory + fileTotal.getName() + ".mid"));
+            OutputStream midi = new FileOutputStream(new File(directory + "midi.mid"));
+            //OutputStream txt = new FileOutputStream(new File(directory + fileTotal.getName() + ".pkst"));
+            OutputStream txt = new FileOutputStream(new File(directory + "texte.pkst"));
             // Ecriture des bytes dans chaque fichier
             midi.write(bytesMidi);
             txt.write(bytesTxt);
@@ -44,6 +50,47 @@ public class Parser {
         }
     }
 
+    void createVoixParoles (Morceau m, String chemin) {
+        Scanner s = null;
+
+        try {
+            // Scanneur avec un delimiteur
+            s = new Scanner(new File(chemin)).useDelimiter("\\n*/////\\n*");
+            m.setTitre(s.next());
+            // Creation voix
+            String voix = s.next();
+            Scanner scannerVoix = null;
+            try {
+                scannerVoix = new Scanner(voix);
+                while (scannerVoix.hasNextLine()) {
+                    String ligne = scannerVoix.nextLine();
+                    String[] tab = ligne.split(":");
+                    Voix v = new Voix(tab[0], tab[1], new Text());
+                    m.addVoix(v);
+                }
+            } finally {
+                scannerVoix.close();
+            }
+            //Creation paroles
+            String paroles = s.next();
+            Scanner scannerParoles = null;
+            try {
+                scannerParoles = new Scanner(paroles);
+                while (scannerParoles.hasNextLine()) {
+                    String ligne = scannerParoles.nextLine();
+                    String[] tab = ligne.split(":");
+                    Voix v = m.getVoix(tab[0]);
+                    v.addParole(new Parole(tab[2], Double.parseDouble(tab[1]), Double.parseDouble(tab[3])));
+                }
+            } finally {
+                scannerParoles.close();
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("Fichier non trouve");
+        } finally {
+            s.close();
+        }
+    }
 
     // Revoir cette partie de "création de fichiers paroles et voix"
     // et la partie "parsing des fichiers paroles et voix"

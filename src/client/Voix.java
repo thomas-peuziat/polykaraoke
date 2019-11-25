@@ -1,10 +1,15 @@
 package client;
 
 import java.util.ArrayList;
+
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 
 class Voix {
-    private ArrayList<Parole> listParoles = new ArrayList<>();
+    private ArrayList<Parole> listParoles;
     private String nom;
     private String type;
     private Text fxText;
@@ -13,6 +18,7 @@ class Voix {
         this.nom = nom;
         this.type = type;
         this.fxText = fxText;
+        this.listParoles = new ArrayList<>();
     }
 
     void addParole(Parole parole){
@@ -27,7 +33,7 @@ class Voix {
         this.fxText.setText("[" + this.nom + "] : ");
     }
 
-    public Text getFxText() {
+    Text getFxText() {
         return fxText;
     }
 
@@ -41,5 +47,12 @@ class Voix {
 
     ArrayList<Parole> getListParoles() {
         return listParoles;
+    }
+
+    void setFont (Color c, double x, double y) {
+        this.fxText.setFont(Font.font("verdana", FontWeight.NORMAL, FontPosture.REGULAR, 20));
+        this.fxText.setX(x);
+        this.fxText.setY(y);
+        this.fxText.setFill(c);
     }
 }

@@ -16,6 +16,7 @@ import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Scanner;
 
@@ -23,35 +24,40 @@ public class Client extends Application {
 
     private void serverCommunication(final String serverHost){
         Socket socketOfClient;
-        BufferedWriter os;
-        BufferedReader is;
-        /*ObjectInputStream in;
+        ObjectInputStream in;
         ObjectOutputStream out;
-        Message m = new Message();*/
+        Message m;
         try {
-
             // Send a request to connect to the server is listening
             // on machine 'localhost' port 9999.
             socketOfClient = new Socket(serverHost, 9999);
-            // Create output stream at the client (to send data to the server)
-            os = new BufferedWriter(new OutputStreamWriter(socketOfClient.getOutputStream()));
 
+            out = new ObjectOutputStream(socketOfClient.getOutputStream());
+            out.flush();
 
-            //Input stream at Client (Receive data from the server).
-            is = new BufferedReader(new InputStreamReader(socketOfClient.getInputStream()));
-            /*System.out.println("Lecture 1");
-            out = new ObjectOutputStream(new BufferedOutputStream(socketOfClient.getOutputStream()));
-            in = new ObjectInputStream(new BufferedInputStream(socketOfClient.getInputStream()));*/
+            in = new ObjectInputStream(socketOfClient.getInputStream());
 
+            System.out.println("Client a cree les flux");
 
+            int[] tableauAEmettre = {1, 2, 3};
 
-            /*System.out.println("Lecture");
-            m = (Message) in.readObject();
-            System.out.println("Taille : " + m.getTailleMidi());
+            out.writeObject(tableauAEmettre);
+            out.flush();
+
+            System.out.println("Client: donnees emises");
+
+            Object objetRecu = in.readObject();
+
+            m = (Message) objetRecu;
+            System.out.println("Client recoit: " + "Taille :"+ m.getTailleMidi());
+
+            Object obj = in.readObject();
+            String s = (String) obj;
+            System.out.println("Client recoit: " + s);
 
             in.close();
             out.close();
-            socketOfClient.close();*/
+            socketOfClient.close();
 
         } catch (UnknownHostException e) {
             System.err.println("Don't know about host " + serverHost);
@@ -59,59 +65,10 @@ public class Client extends Application {
         } catch (IOException e) {
             System.err.println("Couldn't get I/O for the connection to " + serverHost);
             return;
-        } /*catch (ClassNotFoundException e) {
-            System.out.println("ClassNotFoundException");
-        }*/
-
-        /*try {
-            System.out.println("Lecture");
-            m = (Message) in.readObject();
-        } catch (IOException e) {
-            System.out.println("IOException");
         } catch (ClassNotFoundException e) {
             System.out.println("ClassNotFoundException");
         }
 
-        System.out.println("Taille : " + m.getTailleMidi());
-        */
-
-        try {
-
-            // Write data to the output stream of the Client Socket.
-            os.write("HELO");
-
-            // End of line
-            os.newLine();
-
-            // Flush data.
-            os.flush();
-            os.write("I am Tom Cat");
-            os.newLine();
-            os.flush();
-            os.write("QUIT");
-            os.newLine();
-            os.flush();
-
-            // Read data sent from the server.
-            // By reading the input stream of the Client Socket.
-            String responseLine;
-            while ((responseLine = is.readLine()) != null) {
-                System.out.println("Server: " + responseLine);
-                if (responseLine.contains("OK")) {
-                    break;
-                }
-            }
-
-            os.close();
-            is.close();
-            //in.close();
-            //out.close();
-            socketOfClient.close();
-        } catch (UnknownHostException e) {
-            System.err.println("Trying to connect to unknown host: " + e);
-        } catch (IOException e) {
-            System.err.println("IOException:  " + e);
-        }
     }
 
     private ArrayList<KeyFrame> createKeyFrame(ArrayList<Voix> activatedVoix){
@@ -154,7 +111,7 @@ public class Client extends Application {
     @Override
     public void start(Stage stage) {
 
-        //serverCommunication("localhost");
+        serverCommunication("localhost");
         //createVoix("files/voix.txt");
         //createParoles("files/paroles.txt");
         Message m2= new Message();

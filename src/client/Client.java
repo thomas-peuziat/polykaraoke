@@ -6,30 +6,29 @@ import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import message.Message;
 
 import javax.sound.midi.*;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Scanner;
 
 public class Client extends Application {
 
-    private void serverCommunication(final String serverHost){
+    private AbstractMap.SimpleEntry<String, Message> serverCommunication(final String serverHost){
         Socket socketOfClient;
         ObjectInputStream in;
         ObjectOutputStream out;
-        Message m;
+        Message m = null;
+        String morceauChoisi = null;
         try {
-            // Send a request to connect to the server is listening
-            // on machine 'localhost' port 9999.
             socketOfClient = new Socket(serverHost, 9999);
 
             out = new ObjectOutputStream(socketOfClient.getOutputStream());
@@ -39,21 +38,21 @@ public class Client extends Application {
 
             System.out.println("Client a cree les flux");
 
-            int[] tableauAEmettre = {1, 2, 3};
+            System.out.println(in.readUTF());
 
-            out.writeObject(tableauAEmettre);
+            // TODO : Permettre à l'utilisateur d'écrire ce qu'il veut, à la place de "medley"
+            morceauChoisi = "medley";
+
+            out.writeUTF(morceauChoisi);
             out.flush();
-
-            System.out.println("Client: donnees emises");
 
             Object objetRecu = in.readObject();
 
             m = (Message) objetRecu;
             System.out.println("Client recoit: " + "Taille :"+ m.getTailleMidi());
 
-            Object obj = in.readObject();
-            String s = (String) obj;
-            System.out.println("Client recoit: " + s);
+            String musicPath = "./files/client/" + morceauChoisi;
+            new File(musicPath).mkdirs();
 
             in.close();
             out.close();
@@ -61,14 +60,13 @@ public class Client extends Application {
 
         } catch (UnknownHostException e) {
             System.err.println("Don't know about host " + serverHost);
-            return;
         } catch (IOException e) {
             System.err.println("Couldn't get I/O for the connection to " + serverHost);
-            return;
         } catch (ClassNotFoundException e) {
             System.out.println("ClassNotFoundException");
         }
 
+        return new AbstractMap.SimpleEntry<>(morceauChoisi, m);
     }
 
     private ArrayList<KeyFrame> createKeyFrame(ArrayList<Voix> activatedVoix){
@@ -110,38 +108,16 @@ public class Client extends Application {
 
     @Override
     public void start(Stage stage) {
+        AbstractMap.SimpleEntry<String, Message> pair = new AbstractMap.SimpleEntry<>(serverCommunication("localhost"));
+        Message msgRecu = pair.getValue();
+        String musicName = pair.getKey();
+        Morceau morceau = new Morceau();
 
-        serverCommunication("localhost");
-        //createVoix("files/voix.txt");
-        //createParoles("files/paroles.txt");
-        Message m2= new Message();
-        Morceau morceauTest = new Morceau();
-
-        // Deserialisation du message recu
-        ObjectInputStream ois = null;
-        try {
-            final FileInputStream fichier = new FileInputStream("files/message.ser");
-            ois = new ObjectInputStream(fichier);
-            m2 = (Message) ois.readObject();
-        } catch (final java.io.IOException e) {
-            e.printStackTrace();
-        } catch (final ClassNotFoundException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (ois != null) {
-                    ois.close();
-                }
-            } catch (final IOException ex) {
-                ex.printStackTrace();
-            }
-        }
-
-        //
-        long tailleMidi = m2.getTailleMidi();
+        long tailleMidi = msgRecu.getTailleMidi();
         Parser parser = new Parser();
-        parser.createMidAndPKST(m2.getBytesTotal(), tailleMidi);
-        parser.createVoixParoles(morceauTest, "files/texte.pkst");
+        parser.createMidAndPKST(msgRecu.getBytesTotal(), tailleMidi, musicName);
+        String musicFilePath = "files/client/" + musicName + "/" + musicName;
+        parser.createVoixParoles(morceau, musicFilePath + ".pkst");
 
         //
         /*Text text1 = new Text();
@@ -163,14 +139,16 @@ public class Client extends Application {
         allVoix.put(voix1.getNom(), voix1);
         allVoix.put(voix2.getNom(), voix2);*/
         // ----
-        Voix voix1 = morceauTest.getVoix("Robert");
-        Voix voix2 = morceauTest.getVoix("Clara");
+
+        // TODO : Obtenir depuis le .pkst local les Voix et Parole
+
+        Voix voix1 = morceau.getVoix("Robert");
+        Voix voix2 = morceau.getVoix("Clara");
         voix1.setFont(Color.BROWN, 20,20);
         voix2.setFont(Color.RED, 20,40);
 
-        File midiFile = new File("files/midi.mid");
-        //Morceau morceau = new Morceau("titre", allVoix, midiFile);
-        morceauTest.setFile(midiFile);
+        File midiFile = new File(musicFilePath + ".mid");
+        morceau.setFile(midiFile);
 
         // TODO Ajouter processus pour choisir les Voix.
         ArrayList<Voix> activatedVoix = new ArrayList<>();
@@ -201,6 +179,11 @@ public class Client extends Application {
 
         // TODO Ajouter processus pour mettre en pause
 
+    }
+
+    @Override
+    public void stop(){
+        System.exit(0);
     }
 
     public static void main(String[] args) {

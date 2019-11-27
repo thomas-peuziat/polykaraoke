@@ -4,33 +4,51 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.HashMap;
 
 import message.Message;
 
 public class Server {
-
     public static void main(String[] args) {
-        final Message m = new Message();
-        m.createTabBytes("files/medley.mid", "files/texte.txt", "files/total");
-        System.out.println("Taille :"+ m.getTailleMidi());
 
-        ObjectOutputStream oos = null;
+        String unprocessedPath = "./files/server/unprocessed/";
+        String availablePath = "./files/server/available/";
 
-        try {
-            final FileOutputStream fichier = new FileOutputStream("files/message.ser");
-            oos = new ObjectOutputStream(fichier);
-            oos.writeObject(m);
-            oos.flush();
-        } catch (final java.io.IOException e) {
-            e.printStackTrace();
-        } finally {
+        // Permet d'avoir la liste des sous dossiers de unprocessedPath
+        File file = new File(unprocessedPath);
+        String[] directories = file.list(new FilenameFilter() {
+            @Override
+            public boolean accept(File current, String name) {
+                return new File(current, name).isDirectory();
+            }
+        });
+
+        // Pour chaque sous dossiers, on va créer un fichier .ser
+        // On pourrait ne pas faire de fichier .ser et juste créer une liste de Message.
+        for (String musicName : directories) {
+            Message m = new Message();
+            String musicDirectory = musicName + "/";
+            m.createTabBytes(unprocessedPath + musicDirectory + musicName + ".mid", unprocessedPath  + musicDirectory + musicName + ".pkst", unprocessedPath + musicDirectory + musicName + "");
+            System.out.println("Taille :"+ m.getTailleMidi());
+
+            ObjectOutputStream oos = null;
+
             try {
-                if (oos != null) {
-                    oos.flush();
-                    oos.close();
+                final FileOutputStream fichier = new FileOutputStream(availablePath + musicName +".ser");
+                oos = new ObjectOutputStream(fichier);
+                oos.writeObject(m);
+                oos.flush();
+            } catch (final java.io.IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (oos != null) {
+                        oos.flush();
+                        oos.close();
+                    }
+                } catch (final IOException ex) {
+                    ex.printStackTrace();
                 }
-            } catch (final IOException ex) {
-                ex.printStackTrace();
             }
         }
 
@@ -39,10 +57,6 @@ public class Server {
         ObjectInputStream in;
         ObjectOutputStream out;
 
-        // Try to open a server socket on port 9999
-        // Note that we can't choose a port less than 1023 if we are not
-        // privileged users (root)
-
         try {
             listener = new ServerSocket(9999);
         } catch (IOException e) {
@@ -50,10 +64,10 @@ public class Server {
             System.exit(1);
         }
 
+
+        // TODO : Faire tourner le serveur en boucle
         try {
             System.out.println("Server is waiting to accept user...");
-            // Accept client connection request
-            // Get new Socket at Server.
             socketOfServer = listener.accept();
             System.out.println("Accept a client!");
 
@@ -64,58 +78,46 @@ public class Server {
 
             System.out.println("Serveur a cree les flux");
 
-            out.writeObject(m);
+            out.writeUTF("Bienvenue sur PolyKaraoke. Voici les morceaux disponibles : " + Arrays.toString(directories) + ".\nQuel morceau souhaitez-vous écouter ? (Ecrivez le nom du morceau) : ");
+            out.flush();
+
+            String morceauChoisi = in.readUTF();
+            System.out.println("Morceau choisi : " + morceauChoisi);
+
+
+            // Deserialisation du message choisi
+            ObjectInputStream ois = null;
+            Message msgSended = new Message();
+            try {
+                final FileInputStream fichier = new FileInputStream(availablePath + morceauChoisi + ".ser");
+                ois = new ObjectInputStream(fichier);
+                msgSended = (Message) ois.readObject();
+            } catch (final IOException | ClassNotFoundException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (ois != null) {
+                        ois.close();
+                    }
+                } catch (final IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+
+            // Envoi du message choisi
+            out.writeObject(msgSended);
             out.flush();
 
             System.out.println("Serveur: donnees emises");
-
-            out.writeObject("Liste titres");
-            out.flush();
-
-            System.out.println("Serveur: liste emise");
-
-            Object objetRecu = in.readObject();
-            int[] tableauRecu = (int[]) objetRecu;
-
-            System.out.println("Serveur recoit: " + Arrays.toString(tableauRecu));
 
             in.close();
             out.close();
             socketOfServer.close();
 
-            // Open input and output streams
-            /*is = new BufferedReader(new InputStreamReader(socketOfServer.getInputStream()));
-            os = new BufferedWriter(new OutputStreamWriter(socketOfServer.getOutputStream()));
-
-
-            while (true) {
-                // Read data to the server (sent from client).
-                line = is.readLine();
-
-                // Write to socket of Server
-                // (Send to client)
-                os.write(">> " + line);
-                // End of line
-                os.newLine();
-                // Flush data.
-                os.flush();
-
-
-                // If users send QUIT (To end conversation).
-                if (line.equals("QUIT")) {
-                    os.write(">> OK");
-                    os.newLine();
-                    os.flush();
-                    break;
-                }
-            }*/
-
         } catch (IOException e) {
             System.out.println(e);
             e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            System.out.println("ClassNotFoundException");
         }
-        System.out.println("Sever stopped!");
+        System.out.println("Server stopped!");
     }
 }

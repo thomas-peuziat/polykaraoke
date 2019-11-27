@@ -35,7 +35,7 @@ public class Parser {
 
             //Creation des fichiers midi et texte correspondants
 
-            new File(directory).mkdir();
+            new File(directory).mkdirs();
 
             OutputStream midi = new FileOutputStream(new File(directory + "/" + musicName + ".mid"));
             OutputStream txt = new FileOutputStream(new File(directory + "/" + musicName + ".pkst"));

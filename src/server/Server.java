@@ -14,6 +14,26 @@ public class Server {
         m.createTabBytes("files/medley.mid", "files/texte.txt", "files/total");
         System.out.println("Taille :"+ m.getTailleMidi());
 
+        ObjectOutputStream oos = null;
+
+        try {
+            final FileOutputStream fichier = new FileOutputStream("files/message.ser");
+            oos = new ObjectOutputStream(fichier);
+            oos.writeObject(m);
+            oos.flush();
+        } catch (final java.io.IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (oos != null) {
+                    oos.flush();
+                    oos.close();
+                }
+            } catch (final IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+
         ServerSocket listener = null;
         Socket socketOfServer;
         ObjectInputStream in;

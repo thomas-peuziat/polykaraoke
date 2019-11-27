@@ -8,14 +8,14 @@ import java.util.Scanner;
 
 public class Parser {
 
-    void createMidAndPKST(byte[] bytesTotal, long tailleMidi) {
+    void createMidAndPKST(byte[] bytesTotal, long tailleMidi, String musicName) {
         byte[] bytesMidi = null; //Tableau contenant les bytes correspondants au fichier midi
         byte[] bytesTxt = null; //Tableau contenant les bytes correspondants au fichier texte
         //byte[] bytesTotal; // Tableau contenant tous les bytes
 
         //File fileTotal = new File(inputPath);
         //String directory = fileTotal.getParent() + "/";
-        String directory = "files/";
+        String directory = "files/client/" + musicName;
 
         // Recuperation des bytes correspondants au midi et au texte et
         try {
@@ -34,10 +34,11 @@ public class Parser {
             }
 
             //Creation des fichiers midi et texte correspondants
-            //OutputStream midi = new FileOutputStream(new File(directory + fileTotal.getName() + ".mid"));
-            OutputStream midi = new FileOutputStream(new File(directory + "midi.mid"));
-            //OutputStream txt = new FileOutputStream(new File(directory + fileTotal.getName() + ".pkst"));
-            OutputStream txt = new FileOutputStream(new File(directory + "texte.pkst"));
+
+            new File(directory).mkdir();
+
+            OutputStream midi = new FileOutputStream(new File(directory + "/" + musicName + ".mid"));
+            OutputStream txt = new FileOutputStream(new File(directory + "/" + musicName + ".pkst"));
             // Ecriture des bytes dans chaque fichier
             midi.write(bytesMidi);
             txt.write(bytesTxt);

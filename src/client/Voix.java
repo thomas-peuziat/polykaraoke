@@ -55,4 +55,5 @@ class Voix {
         this.fxText.setY(y);
         this.fxText.setFill(c);
     }
+    
 }

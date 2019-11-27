@@ -17,11 +17,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.AbstractMap;
-import java.util.ArrayList;
+import java.util.*;
 
 public class Client extends Application {
-
+    Scanner sc = new Scanner(System.in);
     private AbstractMap.SimpleEntry<String, Message> serverCommunication(final String serverHost){
         Socket socketOfClient;
         ObjectInputStream in;
@@ -41,8 +40,9 @@ public class Client extends Application {
             System.out.println(in.readUTF());
 
             // TODO : Permettre à l'utilisateur d'écrire ce qu'il veut, à la place de "medley"
-            morceauChoisi = "medley";
-
+            //Scanner sc = new Scanner(System.in);
+            morceauChoisi = sc.nextLine();
+            //morceauChoisi = "medley";
             out.writeUTF(morceauChoisi);
             out.flush();
 
@@ -144,16 +144,50 @@ public class Client extends Application {
 
         Voix voix1 = morceau.getVoix("Robert");
         Voix voix2 = morceau.getVoix("Clara");
-        voix1.setFont(Color.BROWN, 20,20);
-        voix2.setFont(Color.RED, 20,40);
+        //voix1.setFont(Color.BROWN, 20,20);
+        //voix2.setFont(Color.RED, 20,40);
 
         File midiFile = new File(musicFilePath + ".mid");
         morceau.setFile(midiFile);
 
         // TODO Ajouter processus pour choisir les Voix.
+        // Recuperation des noms toutes les voix
+        ArrayList<String> tabVoix = new ArrayList<>();
+        for(Map.Entry<String,Voix> v : morceau.getMapVoix().entrySet()){
+            tabVoix.add(v.getValue().getNom());
+        }
+        ArrayList<String> activated = new ArrayList<>(tabVoix);
+        //Scanner sc = new Scanner(System.in);
+        System.out.println("Voulez-vous choisir les voix a ne pas afficher? (oui/non) :");
+        String str = sc.nextLine();
+
+        if (str.equals("oui")) {
+            boolean fini = false;
+            while (!fini) {
+                System.out.println("Voici la liste des voix disponibles :" + activated);
+                System.out.println("Ecrivez le nom que vous ne voulez pas afficher (fin pour valider) :");
+                String s = sc.nextLine();
+                if (s.equals("fin") ) {
+                    fini = true;
+                } else {
+                    activated.remove(s);
+                }
+            }
+        }
+        //sc.close();
+        System.out.println("Fin choix");
         ArrayList<Voix> activatedVoix = new ArrayList<>();
-        activatedVoix.add(voix1);
-        activatedVoix.add(voix2);
+        for (String s : activated) {
+            activatedVoix.add(morceau.getVoix(s));
+        }
+        // Tableau contenant des couleurs
+        Color[] couleurs = {Color.BROWN, Color.RED, Color.GRAY, Color.GREEN, Color.YELLOW};
+
+        for (int i=0; i<activatedVoix.size(); i++) {
+            activatedVoix.get(i).setFont(couleurs[i], 20, 20 + i*20);
+        }
+        //activatedVoix.add(voix1);
+        //activatedVoix.add(voix2);
         // ----
 
         Timeline timeline = new Timeline();

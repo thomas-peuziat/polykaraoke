@@ -13,6 +13,8 @@ public class Server {
 
         String unprocessedPath = "./files/server/unprocessed/";
         String availablePath = "./files/server/available/";
+        new File(unprocessedPath).mkdirs();
+        new File(availablePath).mkdirs();
 
         // Permet d'avoir la liste des sous dossiers de unprocessedPath
         File file = new File(unprocessedPath);

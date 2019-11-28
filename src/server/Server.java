@@ -66,7 +66,6 @@ public class Server {
             System.exit(1);
         }
 
-        // TODO : Faire tourner le serveur en boucle
         while(true) {
             try {
                 System.out.println("Server is waiting to accept user...");
@@ -78,14 +77,11 @@ public class Server {
 
                 in = new ObjectInputStream(socketOfServer.getInputStream());
 
-                System.out.println("Serveur a cree les flux");
-
                 out.writeUTF("Bienvenue sur PolyKaraoke. Voici les morceaux disponibles : " + Arrays.toString(directories) + ".\nQuel morceau souhaitez-vous écouter ? (Ecrivez le nom du morceau) : ");
                 out.flush();
 
                 String morceauChoisi = in.readUTF();
                 System.out.println("Morceau choisi : " + morceauChoisi);
-
 
                 // Deserialisation du message choisi
                 ObjectInputStream ois = null;
@@ -94,6 +90,13 @@ public class Server {
                     final FileInputStream fichier = new FileInputStream(availablePath + morceauChoisi + ".ser");
                     ois = new ObjectInputStream(fichier);
                     msgSended = (Message) ois.readObject();
+
+                    // Envoi du message choisi
+                    out.writeObject(msgSended);
+                    out.flush();
+
+                    System.out.println(morceauChoisi + " envoyé");
+
                 } catch (final IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                 } finally {
@@ -105,12 +108,6 @@ public class Server {
                         ex.printStackTrace();
                     }
                 }
-
-                // Envoi du message choisi
-                out.writeObject(msgSended);
-                out.flush();
-
-                System.out.println("Serveur: donnees emises");
 
                 in.close();
                 out.close();

@@ -66,60 +66,60 @@ public class Server {
             System.exit(1);
         }
 
-
         // TODO : Faire tourner le serveur en boucle
-        try {
-            System.out.println("Server is waiting to accept user...");
-            socketOfServer = listener.accept();
-            System.out.println("Accept a client!");
-
-            out = new ObjectOutputStream(socketOfServer.getOutputStream());
-            out.flush();
-
-            in = new ObjectInputStream(socketOfServer.getInputStream());
-
-            System.out.println("Serveur a cree les flux");
-
-            out.writeUTF("Bienvenue sur PolyKaraoke. Voici les morceaux disponibles : " + Arrays.toString(directories) + ".\nQuel morceau souhaitez-vous écouter ? (Ecrivez le nom du morceau) : ");
-            out.flush();
-
-            String morceauChoisi = in.readUTF();
-            System.out.println("Morceau choisi : " + morceauChoisi);
-
-
-            // Deserialisation du message choisi
-            ObjectInputStream ois = null;
-            Message msgSended = new Message();
+        while(true) {
             try {
-                final FileInputStream fichier = new FileInputStream(availablePath + morceauChoisi + ".ser");
-                ois = new ObjectInputStream(fichier);
-                msgSended = (Message) ois.readObject();
-            } catch (final IOException | ClassNotFoundException e) {
-                e.printStackTrace();
-            } finally {
+                System.out.println("Server is waiting to accept user...");
+                socketOfServer = listener.accept();
+                System.out.println("Accept a client!");
+
+                out = new ObjectOutputStream(socketOfServer.getOutputStream());
+                out.flush();
+
+                in = new ObjectInputStream(socketOfServer.getInputStream());
+
+                System.out.println("Serveur a cree les flux");
+
+                out.writeUTF("Bienvenue sur PolyKaraoke. Voici les morceaux disponibles : " + Arrays.toString(directories) + ".\nQuel morceau souhaitez-vous écouter ? (Ecrivez le nom du morceau) : ");
+                out.flush();
+
+                String morceauChoisi = in.readUTF();
+                System.out.println("Morceau choisi : " + morceauChoisi);
+
+
+                // Deserialisation du message choisi
+                ObjectInputStream ois = null;
+                Message msgSended = new Message();
                 try {
-                    if (ois != null) {
-                        ois.close();
+                    final FileInputStream fichier = new FileInputStream(availablePath + morceauChoisi + ".ser");
+                    ois = new ObjectInputStream(fichier);
+                    msgSended = (Message) ois.readObject();
+                } catch (final IOException | ClassNotFoundException e) {
+                    e.printStackTrace();
+                } finally {
+                    try {
+                        if (ois != null) {
+                            ois.close();
+                        }
+                    } catch (final IOException ex) {
+                        ex.printStackTrace();
                     }
-                } catch (final IOException ex) {
-                    ex.printStackTrace();
                 }
+
+                // Envoi du message choisi
+                out.writeObject(msgSended);
+                out.flush();
+
+                System.out.println("Serveur: donnees emises");
+
+                in.close();
+                out.close();
+                socketOfServer.close();
+
+            } catch (IOException e) {
+                System.out.println(e);
+                e.printStackTrace();
             }
-
-            // Envoi du message choisi
-            out.writeObject(msgSended);
-            out.flush();
-
-            System.out.println("Serveur: donnees emises");
-
-            in.close();
-            out.close();
-            socketOfServer.close();
-
-        } catch (IOException e) {
-            System.out.println(e);
-            e.printStackTrace();
         }
-        System.out.println("Server stopped!");
     }
 }

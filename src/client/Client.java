@@ -134,13 +134,20 @@ public class Client extends Application {
 
         System.out.println("Voulez-vous choisir les voix a ne pas afficher? (oui/non) :");
         String str = sc.nextLine();
-        
+        while (!str.equals("oui") && !str.equals("non")) {
+            System.out.println("Veuillez repondre par oui ou non svp :");
+            str = sc.nextLine();
+        }
         if (str.equals("oui")) {
             boolean fini = false;
             while (!fini) {
                 System.out.println("Voici la liste des voix disponibles :" + activated);
                 System.out.println("Ecrivez le nom que vous ne voulez pas afficher (fin pour valider) :");
                 String s = sc.nextLine();
+                while (!activated.contains(s) && !s.equals("fin")) {
+                    System.out.println("Veuillez donner un nom present dans le tableau svp :");
+                    s = sc.nextLine();
+                }
                 if (s.equals("fin") ) {
                     fini = true;
                 } else {
@@ -148,8 +155,7 @@ public class Client extends Application {
                 }
             }
         }
-        //sc.close();
-        System.out.println("Fin choix");
+
         ArrayList<Voix> activatedVoix = new ArrayList<>();
         for (String s : activated) {
             activatedVoix.add(morceau.getVoix(s));
@@ -160,17 +166,12 @@ public class Client extends Application {
         for (int i=0; i<activatedVoix.size(); i++) {
             activatedVoix.get(i).setFont(couleurs[i], 20, 20 + i*20);
         }
-        //activatedVoix.add(voix1);
-        //activatedVoix.add(voix2);
-        // ----
 
         Timeline timeline = new Timeline();
         timeline.getKeyFrames().addAll(createKeyFrame(activatedVoix));
 
         //Creating a Group object
-        //Group root = new Group(voix1.getFxText(), voix2.getFxText());
         Group root = new Group();
-
         for (Voix v : tabVoix) {
             root.getChildren().add(v.getFxText());
         }

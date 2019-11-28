@@ -39,10 +39,8 @@ public class Client extends Application {
 
             System.out.println(in.readUTF());
 
-            // TODO : Permettre à l'utilisateur d'écrire ce qu'il veut, à la place de "medley"
-            //Scanner sc = new Scanner(System.in);
+            // Permettre à l'utilisateur d'écrire ce qu'il veut, à la place de "medley"
             morceauChoisi = sc.nextLine();
-            //morceauChoisi = "medley";
             out.writeUTF(morceauChoisi);
             out.flush();
 
@@ -119,48 +117,24 @@ public class Client extends Application {
         String musicFilePath = "files/client/" + musicName + "/" + musicName;
         parser.createVoixParoles(morceau, musicFilePath + ".pkst");
 
-        //
-        /*Text text1 = new Text();
-        Text text2 = new Text();
-
-        Voix voix1 = new Voix("Robert", "Chien", text1);
-        Voix voix2 = new Voix("Clara", "Femme", text2);
-
-        voix1.addParole(new Parole("waf waf waf", 5.2, 7.2));
-        voix1.addParole(new Parole("waf", 8.2, 10.8));
-
-        voix2.addParole(new Parole("Chanter c'est cool", 1.2, 4.0));
-        voix2.addParole(new Parole("C'est super de chanter", 10.2, 12));
-
-        voix1.setFont(Color.BROWN, 20,20);
-        voix2.setFont(Color.RED, 20,40);
-
-        HashMap<String, Voix> allVoix = new HashMap<>();
-        allVoix.put(voix1.getNom(), voix1);
-        allVoix.put(voix2.getNom(), voix2);*/
-        // ----
-
-        // TODO : Obtenir depuis le .pkst local les Voix et Parole
-
-        Voix voix1 = morceau.getVoix("Robert");
-        Voix voix2 = morceau.getVoix("Clara");
-        //voix1.setFont(Color.BROWN, 20,20);
-        //voix2.setFont(Color.RED, 20,40);
-
         File midiFile = new File(musicFilePath + ".mid");
         morceau.setFile(midiFile);
 
-        // TODO Ajouter processus pour choisir les Voix.
-        // Recuperation des noms toutes les voix
-        ArrayList<String> tabVoix = new ArrayList<>();
+        // Recuperation de toutes les voix
+        ArrayList<Voix> tabVoix = new ArrayList<>();
         for(Map.Entry<String,Voix> v : morceau.getMapVoix().entrySet()){
-            tabVoix.add(v.getValue().getNom());
+            tabVoix.add(v.getValue());
         }
-        ArrayList<String> activated = new ArrayList<>(tabVoix);
-        //Scanner sc = new Scanner(System.in);
+
+        // Recuperation des noms pour toutes les voix
+        ArrayList<String> activated = new ArrayList<>();
+        for (Voix v : tabVoix) {
+            activated.add(v.getNom());
+        }
+
         System.out.println("Voulez-vous choisir les voix a ne pas afficher? (oui/non) :");
         String str = sc.nextLine();
-
+        
         if (str.equals("oui")) {
             boolean fini = false;
             while (!fini) {
@@ -194,8 +168,12 @@ public class Client extends Application {
         timeline.getKeyFrames().addAll(createKeyFrame(activatedVoix));
 
         //Creating a Group object
-        Group root = new Group(voix1.getFxText(), voix2.getFxText());
+        //Group root = new Group(voix1.getFxText(), voix2.getFxText());
+        Group root = new Group();
 
+        for (Voix v : tabVoix) {
+            root.getChildren().add(v.getFxText());
+        }
         //Creating a scene object
         Scene scene = new Scene(root, 600, 400);
 

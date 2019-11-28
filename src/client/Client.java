@@ -27,6 +27,7 @@ public class Client extends Application {
         ObjectOutputStream out;
         Message m = null;
         String morceauChoisi = null;
+        String nomClient = null;
         try {
             socketOfClient = new Socket(serverHost, 9999);
 
@@ -35,7 +36,14 @@ public class Client extends Application {
 
             in = new ObjectInputStream(socketOfClient.getInputStream());
 
-            System.out.println("Client a cree les flux");
+            System.out.println("Connexion acceptée.");
+
+            System.out.println(in.readUTF());
+
+            // L'utilisateur rentre son nom
+            nomClient = sc.nextLine();
+            out.writeUTF(nomClient);
+            out.flush();
 
             System.out.println(in.readUTF());
 

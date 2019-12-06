@@ -8,15 +8,14 @@ import javafx.stage.Stage;
 import message.Message;
 
 import javax.sound.midi.Sequencer;
-import java.io.File;
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 public class ClientMain extends Application {
-    //Scanner sc = new Scanner(System.in);
-    Client client = new Client();
+
     public void start(Stage stage) {
+
+        Client client = new Client("./files/client/", 9999);
         AbstractMap.SimpleEntry<String, Message> pair = new AbstractMap.SimpleEntry<>(client.serverCommunication("localhost"));
 
         Morceau morceau = new Morceau();

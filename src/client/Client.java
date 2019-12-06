@@ -1,12 +1,8 @@
 package client;
 
 import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
-import javafx.application.Application;
 import javafx.scene.Group;
-import javafx.scene.Scene;
 import javafx.scene.paint.Color;
-import javafx.stage.Stage;
 import javafx.util.Duration;
 import message.Message;
 
@@ -19,10 +15,26 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.*;
 
-public class Client  {
-    Scanner sc;
-    Client () {
-        sc = new Scanner(System.in);
+class Client  {
+    private Scanner sc;
+    private String nom;
+    private String morceauChoisi;
+    private String directoryPath; // "./files/client/"
+    private int port;
+
+    Client(String directoryPath, int port) {
+        this.sc = new Scanner(System.in);
+        this.port = port;
+        this.directoryPath = directoryPath;
+        new File(directoryPath).mkdirs();
+    }
+
+    public String getNom() {
+        return nom;
+    }
+
+    public String getMorceauChoisi() {
+        return morceauChoisi;
     }
 
     static boolean checkIfExists(String[] myStringArray, String stringToLocate) {
@@ -34,15 +46,14 @@ public class Client  {
         return false;
     }
 
-    public AbstractMap.SimpleEntry<String, Message> serverCommunication(final String serverHost){
+    AbstractMap.SimpleEntry<String, Message> serverCommunication(final String serverHost){
         Socket socketOfClient;
         ObjectInputStream in;
         ObjectOutputStream out;
         Message m = null;
         String morceauChoisi = null;
-        String nomClient = null;
         try {
-            socketOfClient = new Socket(serverHost, 9999);
+            socketOfClient = new Socket(serverHost, port);
 
             out = new ObjectOutputStream(socketOfClient.getOutputStream());
             out.flush();
@@ -54,30 +65,29 @@ public class Client  {
             System.out.println(in.readUTF());
 
             // L'utilisateur rentre son nom
-            nomClient = sc.nextLine();
-            out.writeUTF(nomClient);
+            nom = sc.nextLine();
+            out.writeUTF(nom);
             out.flush();
 
             System.out.println(in.readUTF());
 
             String[] morceauxDisponibles = (String[]) in.readObject();
 
-            // Permettre à l'utilisateur d'écrire ce qu'il veut, à la place de "medley"
             morceauChoisi = sc.nextLine();
             //Verification saisie
             while (!checkIfExists(morceauxDisponibles,morceauChoisi)) {
-                System.out.println("Veuillez saisir unnom de morceau valide : ");
+                System.out.println("Veuillez saisir un nom de morceau valide : ");
                 morceauChoisi = sc.nextLine();
             }
             out.writeUTF(morceauChoisi);
+            this.morceauChoisi = morceauChoisi;
             out.flush();
 
             Object objetRecu = in.readObject();
 
             m = (Message) objetRecu;
-            //System.out.println("Client recoit: " + "Taille :"+ m.getTailleMidi());
 
-            String musicPath = "./files/client/" + morceauChoisi;
+            String musicPath = directoryPath + morceauChoisi;
             new File(musicPath).mkdirs();
 
             in.close();
@@ -95,7 +105,7 @@ public class Client  {
         return new AbstractMap.SimpleEntry<>(morceauChoisi, m);
     }
 
-    public ArrayList<KeyFrame> createKeyFrame(ArrayList<Voix> activatedVoix){
+    ArrayList<KeyFrame> createKeyFrame(ArrayList<Voix> activatedVoix){
         ArrayList<KeyFrame> listKeyFrames = new ArrayList<>();
 
         for (Voix voix : activatedVoix) {
@@ -116,7 +126,7 @@ public class Client  {
     }
 
 
-    public Sequencer launchMidi(File midiFile, float tempoFactor) {
+    Sequencer launchMidi(File midiFile, float tempoFactor) {
         Sequencer sequencer = null;
         try {
             Sequence sequence = MidiSystem.getSequence(midiFile);
@@ -132,7 +142,7 @@ public class Client  {
         return sequencer;
     }
 
-    public ArrayList<Voix> gestionVoix (Morceau morceau, Group root) {
+    ArrayList<Voix> gestionVoix (Morceau morceau, Group root) {
         // Recuperation de toutes les voix
         ArrayList<Voix> tabVoix = new ArrayList<>();
         for(Map.Entry<String,Voix> v : morceau.getMapVoix().entrySet()){
@@ -188,7 +198,7 @@ public class Client  {
         return activatedVoix;
     }
 
-    public float choixTempo() {
+    float choixTempo() {
         float tempo = 0;
         System.out.println("Voulez-vous modifier le tempo? (oui/non) :");
         String str = sc.nextLine();
@@ -198,7 +208,7 @@ public class Client  {
         }
         if (str.equals("oui")) {
             System.out.println("Ecrivez la nouvelle valeur :");
-            String s = sc.nextLine();;
+            String s = sc.nextLine();
             boolean reussi = false;
             while (!reussi) {
                 try
@@ -220,7 +230,7 @@ public class Client  {
 
     }
 
-    public void parse (AbstractMap.SimpleEntry<String, Message> pair, float tempo, Morceau morceau ) {
+    void parse (AbstractMap.SimpleEntry<String, Message> pair, float tempo, Morceau morceau ) {
         Message msgRecu = pair.getValue();
         String musicName = pair.getKey();
         long tailleMidi = msgRecu.getTailleMidi();

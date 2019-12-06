@@ -26,7 +26,11 @@ class Voix {
     }
 
     void updateText(Parole parole){
-        this.fxText.setText("[" + this.nom + "] : " + parole.getPhrase());
+        if (parole.getTechnique().equals("") || !(Parole.getTechniquesActivées())) {
+            this.fxText.setText("[" + this.nom + "] : " + parole.getPhrase());
+        } else {
+            this.fxText.setText("[" + this.nom + "] [" + parole.getTechnique() + "] : " + parole.getPhrase());
+        }
     }
 
     void clearText(){

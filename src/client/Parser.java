@@ -75,9 +75,13 @@ public class Parser {
                 while (scannerParoles.hasNextLine()) {
                     String ligne = scannerParoles.nextLine();
                     String[] tab = ligne.split(":");
+                    String technique= "";
+                    if (tab.length==5) {
+                        technique = tab[4];
+                    }
                     Voix v = m.getVoix(tab[0]);
                     //On divise les timestamps par le tempo pour qu'ils soient toujours synchro
-                    v.addParole(new Parole(tab[2], Double.parseDouble(tab[1])/tempo, Double.parseDouble(tab[3])/tempo));
+                    v.addParole(new Parole(tab[2], Double.parseDouble(tab[1])/tempo, Double.parseDouble(tab[3])/tempo, technique));
                 }
             } finally {
                 scannerParoles.close();

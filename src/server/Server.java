@@ -169,7 +169,12 @@ class Server {
                 out.writeUTF("Voici les morceaux disponibles : " + Arrays.toString(subdirectories) + ".\nQuel morceau souhaitez-vous écouter ? (Ecrivez le nom du morceau) : ");
                 out.flush();
 
+                //Envoi de la liste des morceaux disponibles
+                out.writeObject(subdirectories);
+                out.flush();
+
                 String morceauChoisi = in.readUTF();
+
                 System.out.println("Client : " + nomClient + " et morceau choisi : " + morceauChoisi);
 
 

@@ -21,13 +21,14 @@ public class ClientMain extends Application {
 
         Morceau morceau = new Morceau();
         float tempo = client.choixTempo();
-
+        System.out.println("Tempo : " + tempo);
         client.parse(pair, tempo, morceau);
 
         //Creating a Group object
         Group root = new Group();
 
         ArrayList<Voix> activatedVoix = client.gestionVoix(morceau, root);
+        client.gestionTechniques();
 
         Timeline timeline = new Timeline();
         timeline.getKeyFrames().addAll(client.createKeyFrame(activatedVoix));

@@ -24,6 +24,16 @@ public class Client  {
     Client () {
         sc = new Scanner(System.in);
     }
+
+    static boolean checkIfExists(String[] myStringArray, String stringToLocate) {
+        for (String element:myStringArray ) {
+            if ( element.equals( stringToLocate)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public AbstractMap.SimpleEntry<String, Message> serverCommunication(final String serverHost){
         Socket socketOfClient;
         ObjectInputStream in;
@@ -50,15 +60,22 @@ public class Client  {
 
             System.out.println(in.readUTF());
 
+            String[] morceauxDisponibles = (String[]) in.readObject();
+
             // Permettre à l'utilisateur d'écrire ce qu'il veut, à la place de "medley"
             morceauChoisi = sc.nextLine();
+            //Verification saisie
+            while (!checkIfExists(morceauxDisponibles,morceauChoisi)) {
+                System.out.println("Veuillez saisir unnom de morceau valide : ");
+                morceauChoisi = sc.nextLine();
+            }
             out.writeUTF(morceauChoisi);
             out.flush();
 
             Object objetRecu = in.readObject();
 
             m = (Message) objetRecu;
-            System.out.println("Client recoit: " + "Taille :"+ m.getTailleMidi());
+            //System.out.println("Client recoit: " + "Taille :"+ m.getTailleMidi());
 
             String musicPath = "./files/client/" + morceauChoisi;
             new File(musicPath).mkdirs();
@@ -216,6 +233,18 @@ public class Client  {
         File midiFile = new File(musicFilePath + ".mid");
         morceau.setFile(midiFile);
 
+    }
+
+    void gestionTechniques() {
+        System.out.println("Voulez-vous desactiver les informations sur les techniques vocales? (oui/non) :");
+        String str = sc.nextLine();
+        while (!str.equals("oui") && !str.equals("non")) {
+            System.out.println("Veuillez repondre par oui ou non svp :");
+            str = sc.nextLine();
+        }
+        if (str.equals("oui")) {
+            Parole.setTechniquesActivées(false);
+        }
     }
 
 }

@@ -46,7 +46,7 @@ public class Parser {
         }
     }
 
-    void createVoixParoles (Morceau m, String chemin) {
+    void createVoixParoles (Morceau m, String chemin, float tempo) {
         Scanner s = null;
 
         try {
@@ -76,7 +76,8 @@ public class Parser {
                     String ligne = scannerParoles.nextLine();
                     String[] tab = ligne.split(":");
                     Voix v = m.getVoix(tab[0]);
-                    v.addParole(new Parole(tab[2], Double.parseDouble(tab[1]), Double.parseDouble(tab[3])));
+                    //On divise les timestamps par le tempo pour qu'ils soient toujours synchro
+                    v.addParole(new Parole(tab[2], Double.parseDouble(tab[1])/tempo, Double.parseDouble(tab[3])/tempo));
                 }
             } finally {
                 scannerParoles.close();

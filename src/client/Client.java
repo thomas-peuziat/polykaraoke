@@ -19,9 +19,12 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.*;
 
-public class Client extends Application {
-    Scanner sc = new Scanner(System.in);
-    private AbstractMap.SimpleEntry<String, Message> serverCommunication(final String serverHost){
+public class Client  {
+    Scanner sc;
+    Client () {
+        sc = new Scanner(System.in);
+    }
+    public AbstractMap.SimpleEntry<String, Message> serverCommunication(final String serverHost){
         Socket socketOfClient;
         ObjectInputStream in;
         ObjectOutputStream out;
@@ -75,7 +78,7 @@ public class Client extends Application {
         return new AbstractMap.SimpleEntry<>(morceauChoisi, m);
     }
 
-    private ArrayList<KeyFrame> createKeyFrame(ArrayList<Voix> activatedVoix){
+    public ArrayList<KeyFrame> createKeyFrame(ArrayList<Voix> activatedVoix){
         ArrayList<KeyFrame> listKeyFrames = new ArrayList<>();
 
         for (Voix voix : activatedVoix) {
@@ -96,7 +99,7 @@ public class Client extends Application {
     }
 
 
-    private Sequencer launchMidi(File midiFile, float tempoFactor) {
+    public Sequencer launchMidi(File midiFile, float tempoFactor) {
         Sequencer sequencer = null;
         try {
             Sequence sequence = MidiSystem.getSequence(midiFile);
@@ -112,22 +115,7 @@ public class Client extends Application {
         return sequencer;
     }
 
-    @Override
-    public void start(Stage stage) {
-        AbstractMap.SimpleEntry<String, Message> pair = new AbstractMap.SimpleEntry<>(serverCommunication("localhost"));
-        Message msgRecu = pair.getValue();
-        String musicName = pair.getKey();
-        Morceau morceau = new Morceau();
-
-        long tailleMidi = msgRecu.getTailleMidi();
-        Parser parser = new Parser();
-        parser.createMidAndPKST(msgRecu.getBytesTotal(), tailleMidi, musicName);
-        String musicFilePath = "files/client/" + musicName + "/" + musicName;
-        parser.createVoixParoles(morceau, musicFilePath + ".pkst");
-
-        File midiFile = new File(musicFilePath + ".mid");
-        morceau.setFile(midiFile);
-
+    public ArrayList<Voix> gestionVoix (Morceau morceau, Group root) {
         // Recuperation de toutes les voix
         ArrayList<Voix> tabVoix = new ArrayList<>();
         for(Map.Entry<String,Voix> v : morceau.getMapVoix().entrySet()){
@@ -175,42 +163,59 @@ public class Client extends Application {
             activatedVoix.get(i).setFont(couleurs[i], 20, 20 + i*20);
         }
 
-        Timeline timeline = new Timeline();
-        timeline.getKeyFrames().addAll(createKeyFrame(activatedVoix));
-
-        //Creating a Group object
-        Group root = new Group();
+        //Group root = new Group();
         for (Voix v : tabVoix) {
             root.getChildren().add(v.getFxText());
         }
-        //Creating a scene object
-        Scene scene = new Scene(root, 600, 400);
 
-        //Setting title to the Stage
-        stage.setTitle("PolyKaraoke");
+        return activatedVoix;
+    }
 
-        //Adding scene to the stage
-        stage.setScene(scene);
-
-        //Displaying the contents of the stage
-        stage.show();
-
-        Sequencer sequencer = launchMidi(midiFile, 1);
-        timeline.play();
-
-        // TODO Ajouter processus pour mettre en pause
+    public float choixTempo() {
+        float tempo = 0;
+        System.out.println("Voulez-vous modifier le tempo? (oui/non) :");
+        String str = sc.nextLine();
+        while (!str.equals("oui") && !str.equals("non")) {
+            System.out.println("Veuillez repondre par oui ou non svp :");
+            str = sc.nextLine();
+        }
+        if (str.equals("oui")) {
+            System.out.println("Ecrivez la nouvelle valeur :");
+            String s = sc.nextLine();;
+            boolean reussi = false;
+            while (!reussi) {
+                try
+                {
+                    tempo = Float.parseFloat(s.trim());
+                    reussi = true;
+                }
+                catch (NumberFormatException nfe)
+                {
+                    System.err.println("NumberFormatException: " + nfe.getMessage());
+                    System.out.println("Veuillez saisir une valeur reelle au bon format:");
+                    s = sc.nextLine();
+                }
+            }
+            return tempo;
+        } else {
+            return 1;
+        }
 
     }
 
-    @Override
-    public void stop(){
-        System.exit(0);
-    }
+    public void parse (AbstractMap.SimpleEntry<String, Message> pair, float tempo, Morceau morceau ) {
+        Message msgRecu = pair.getValue();
+        String musicName = pair.getKey();
+        long tailleMidi = msgRecu.getTailleMidi();
 
-    public static void main(String[] args) {
+        Parser parser = new Parser();
+        parser.createMidAndPKST(msgRecu.getBytesTotal(), tailleMidi, musicName);
+        String musicFilePath = "files/client/" + musicName + "/" + musicName;
+        parser.createVoixParoles(morceau, musicFilePath + ".pkst", tempo);
 
-        launch(args);
-        //serverCommunication("localhost");
+        File midiFile = new File(musicFilePath + ".mid");
+        morceau.setFile(midiFile);
+
     }
 
 }

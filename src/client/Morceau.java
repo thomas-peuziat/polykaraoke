@@ -47,4 +47,8 @@ public class Morceau {
     public File getMidiFile() {
         return midiFile;
     }
+
+    public File getFile() {
+        return midiFile;
+    }
 }

@@ -1,28 +1,45 @@
 package server;
 
+import message.Message;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
 
-import message.Message;
+class Server {
 
-public class Server {
+    private String unprocessedPath;
+    private String availablePath;
+    private String statsPath;
+    private int port;
 
-    private static void updateStatistics(String statsPath, String clientName, String morceauName){
+    Server(String unprocessedPath, String availablePath, String statsPath, int port) {
+        this.unprocessedPath = unprocessedPath;
+        this.availablePath = availablePath;
+        this.statsPath = statsPath;
+        this.port = port;
+
+        new File(unprocessedPath).mkdirs();
+        new File(availablePath).mkdirs();
+        new File(statsPath).mkdirs();
+    }
+
+    private void updateStatistics(String statsPath, String clientName, String morceauName){
         try {
-            //Ouverture d'un flux d'ecriture
+            // Ouverture d'un flux d'ecriture
             FileOutputStream dest = new FileOutputStream(statsPath, true);
             dest.write((clientName + ":" + morceauName + "\r\n").getBytes());
             dest.close();
         } catch (IOException e) {
-            System.out.println("Fichier non trouve");
+            System.out.println("Fichier non trouvé");
         }
     }
 
-    private static void readStatistics(String statsPath) {
+    void readStatistics(String statsPath) {
         Scanner scanner = null;
         HashMap<String, Integer> statsClient = new HashMap<>();
         HashMap<String, Integer> statsMorceau = new HashMap<>();
@@ -78,13 +95,7 @@ public class Server {
         System.out.println("Morceau le plus écouté : " + maxStringMorceau + " avec " + maxIntMorceau + " écoutes.");
     }
 
-    public static void main(String[] args) {
-
-        String unprocessedPath = "./files/server/unprocessed/";
-        String availablePath = "./files/server/available/";
-        new File(unprocessedPath).mkdirs();
-        new File(availablePath).mkdirs();
-
+    String[] getSubdirectoriesUnprocessedPath() {
         // Permet d'avoir la liste des sous dossiers de unprocessedPath
         File file = new File(unprocessedPath);
         String[] directories = file.list(new FilenameFilter() {
@@ -93,9 +104,11 @@ public class Server {
                 return new File(current, name).isDirectory();
             }
         });
+        return directories;
+    }
 
+    void processMusics(String[] directories) {
         // Pour chaque sous dossiers, on va créer un fichier .ser
-        // On pourrait ne pas faire de fichier .ser et juste créer une liste de Message.
         for (String musicName : directories) {
             Message m = new Message();
             String musicDirectory = musicName + "/";
@@ -121,14 +134,16 @@ public class Server {
                 }
             }
         }
+    }
 
+    void communicationLoop(){
         ServerSocket listener = null;
         Socket socketOfServer;
         ObjectInputStream in;
         ObjectOutputStream out;
 
         try {
-            listener = new ServerSocket(9999);
+            listener = new ServerSocket(port);
         } catch (IOException e) {
             System.out.println(e);
             System.exit(1);
@@ -136,9 +151,9 @@ public class Server {
 
         while(true) {
             try {
-                System.out.println("Server is waiting to accept user...");
+                System.out.println("En attente de client...");
                 socketOfServer = listener.accept();
-                System.out.println("Accept a client!");
+                System.out.println("Un client a été accepté!\n");
 
                 out = new ObjectOutputStream(socketOfServer.getOutputStream());
                 out.flush();
@@ -149,14 +164,13 @@ public class Server {
                 out.flush();
 
                 String nomClient = in.readUTF();
+                String[] subdirectories = getSubdirectoriesUnprocessedPath();
 
-                out.writeUTF("Voici les morceaux disponibles : " + Arrays.toString(directories) + ".\nQuel morceau souhaitez-vous écouter ? (Ecrivez le nom du morceau) : ");
+                out.writeUTF("Voici les morceaux disponibles : " + Arrays.toString(subdirectories) + ".\nQuel morceau souhaitez-vous écouter ? (Ecrivez le nom du morceau) : ");
                 out.flush();
 
                 String morceauChoisi = in.readUTF();
                 System.out.println("Client : " + nomClient + " et morceau choisi : " + morceauChoisi);
-
-                String statsPath = "./files/server/stats.txt";
 
 
                 // Deserialisation du message choisi

@@ -25,7 +25,6 @@ class Server {
 
         new File(unprocessedPath).mkdirs();
         new File(availablePath).mkdirs();
-        new File(statsPath).mkdirs();
     }
 
     private void updateStatistics(String statsPath, String clientName, String morceauName){

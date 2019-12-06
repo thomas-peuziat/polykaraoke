@@ -237,7 +237,7 @@ class Client  {
 
         Parser parser = new Parser();
         parser.createMidAndPKST(msgRecu.getBytesTotal(), tailleMidi, musicName);
-        String musicFilePath = "files/client/" + musicName + "/" + musicName;
+        String musicFilePath = directoryPath + musicName + "/" + musicName;
         parser.createVoixParoles(morceau, musicFilePath + ".pkst", tempo);
 
         File midiFile = new File(musicFilePath + ".mid");

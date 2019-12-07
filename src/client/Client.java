@@ -3,6 +3,7 @@ package client;
 import javafx.animation.KeyFrame;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 import message.Message;
 
@@ -13,9 +14,12 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Scanner;
 
-class Client  {
+class Client {
     private Scanner sc;
     private String nom;
     private String morceauChoisi;
@@ -37,16 +41,7 @@ class Client  {
         return morceauChoisi;
     }
 
-    static boolean checkIfExists(String[] myStringArray, String stringToLocate) {
-        for (String element:myStringArray ) {
-            if ( element.equals( stringToLocate)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    AbstractMap.SimpleEntry<String, Message> serverCommunication(final String serverHost){
+    AbstractMap.SimpleEntry<String, Message> serverCommunication(final String serverHost) {
         Socket socketOfClient;
         ObjectInputStream in;
         ObjectOutputStream out;
@@ -75,7 +70,7 @@ class Client  {
 
             morceauChoisi = sc.nextLine();
             //Verification saisie
-            while (!checkIfExists(morceauxDisponibles,morceauChoisi)) {
+            while (!checkIfExists(morceauxDisponibles, morceauChoisi)) {
                 System.out.println("Veuillez saisir un nom de morceau valide : ");
                 morceauChoisi = sc.nextLine();
             }
@@ -105,7 +100,7 @@ class Client  {
         return new AbstractMap.SimpleEntry<>(morceauChoisi, m);
     }
 
-    ArrayList<KeyFrame> createKeyFrame(ArrayList<Voix> activatedVoix){
+    ArrayList<KeyFrame> createKeyFrame(ArrayList<Voix> activatedVoix) {
         ArrayList<KeyFrame> listKeyFrames = new ArrayList<>();
 
         for (Voix voix : activatedVoix) {
@@ -126,7 +121,7 @@ class Client  {
     }
 
 
-    Sequencer launchMidi(File midiFile, float tempoFactor) {
+    Sequencer initSequencer(File midiFile, float tempoFactor) {
         Sequencer sequencer = null;
         try {
             Sequence sequence = MidiSystem.getSequence(midiFile);
@@ -134,7 +129,6 @@ class Client  {
             sequencer.open();
             sequencer.setSequence(sequence);
             sequencer.setTempoFactor(tempoFactor);
-            sequencer.start();
         } catch (MidiUnavailableException | InvalidMidiDataException | IOException e) {
             e.printStackTrace();
         }
@@ -142,10 +136,10 @@ class Client  {
         return sequencer;
     }
 
-    ArrayList<Voix> gestionVoix (Morceau morceau, Group root) {
+    ArrayList<Voix> gestionVoix(Morceau morceau, Group root) {
         // Recuperation de toutes les voix
         ArrayList<Voix> tabVoix = new ArrayList<>();
-        for(Map.Entry<String,Voix> v : morceau.getMapVoix().entrySet()){
+        for (Map.Entry<String, Voix> v : morceau.getMapVoix().entrySet()) {
             tabVoix.add(v.getValue());
         }
 
@@ -156,11 +150,7 @@ class Client  {
         }
 
         System.out.println("Voulez-vous choisir les voix a ne pas afficher? (oui/non) :");
-        String str = sc.nextLine();
-        while (!str.equals("oui") && !str.equals("non")) {
-            System.out.println("Veuillez repondre par oui ou non svp :");
-            str = sc.nextLine();
-        }
+        String str = demandeOuiNon();
         if (str.equals("oui")) {
             boolean fini = false;
             while (!fini) {
@@ -171,7 +161,7 @@ class Client  {
                     System.out.println("Veuillez donner un nom present dans le tableau svp :");
                     s = sc.nextLine();
                 }
-                if (s.equals("fin") ) {
+                if (s.equals("fin")) {
                     fini = true;
                 } else {
                     activated.remove(s);
@@ -186,8 +176,8 @@ class Client  {
         // Tableau contenant des couleurs
         Color[] couleurs = {Color.BROWN, Color.RED, Color.GRAY, Color.GREEN, Color.YELLOW};
 
-        for (int i=0; i<activatedVoix.size(); i++) {
-            activatedVoix.get(i).setFont(couleurs[i], 20, 20 + i*20);
+        for (int i = 0; i < activatedVoix.size(); i++) {
+            activatedVoix.get(i).setFont(couleurs[i], 20, 100 + i * 40);
         }
 
         //Group root = new Group();
@@ -201,23 +191,16 @@ class Client  {
     float choixTempo() {
         float tempo = 0;
         System.out.println("Voulez-vous modifier le tempo? (oui/non) :");
-        String str = sc.nextLine();
-        while (!str.equals("oui") && !str.equals("non")) {
-            System.out.println("Veuillez repondre par oui ou non svp :");
-            str = sc.nextLine();
-        }
+        String str = demandeOuiNon();
         if (str.equals("oui")) {
             System.out.println("Ecrivez la nouvelle valeur :");
             String s = sc.nextLine();
             boolean reussi = false;
             while (!reussi) {
-                try
-                {
+                try {
                     tempo = Float.parseFloat(s.trim());
                     reussi = true;
-                }
-                catch (NumberFormatException nfe)
-                {
+                } catch (NumberFormatException nfe) {
                     System.err.println("NumberFormatException: " + nfe.getMessage());
                     System.out.println("Veuillez saisir une valeur reelle au bon format:");
                     s = sc.nextLine();
@@ -230,7 +213,7 @@ class Client  {
 
     }
 
-    void parse (AbstractMap.SimpleEntry<String, Message> pair, float tempo, Morceau morceau ) {
+    void parse(AbstractMap.SimpleEntry<String, Message> pair, float tempo, Morceau morceau) {
         Message msgRecu = pair.getValue();
         String musicName = pair.getKey();
         long tailleMidi = msgRecu.getTailleMidi();
@@ -247,14 +230,63 @@ class Client  {
 
     void gestionTechniques() {
         System.out.println("Voulez-vous desactiver les informations sur les techniques vocales? (oui/non) :");
-        String str = sc.nextLine();
-        while (!str.equals("oui") && !str.equals("non")) {
-            System.out.println("Veuillez repondre par oui ou non svp :");
-            str = sc.nextLine();
-        }
+        String str = demandeOuiNon();
         if (str.equals("oui")) {
             Parole.setTechniquesActivées(false);
         }
     }
 
+    ArrayList<KeyFrame> gestionEffets(Group group, Sequencer sequencer) {
+        ArrayList<KeyFrame> listKeyFrames = new ArrayList<>();
+        float beatPerSecond = (sequencer.getTempoInBPM() * sequencer.getTempoFactor()) / 60;
+
+        System.out.println("Voulez-vous desactiver les animations ? (oui/non) :");
+        String str = demandeOuiNon();
+
+        if (str.equals("non")) {
+            Circle circle = new Circle(1700, 600, 20, Color.RED);
+            group.getChildren().add(circle);
+
+            KeyFrame keyframeOnA = new KeyFrame(
+                    Duration.seconds(0),
+                    actionEvent -> {
+                        circle.setRadius(20);
+                    });
+            listKeyFrames.add(keyframeOnA);
+
+
+            KeyFrame keyframeOnB = new KeyFrame(
+                    Duration.seconds(1 / beatPerSecond),
+                    actionEvent -> {
+                        circle.setRadius(40);
+                    });
+            listKeyFrames.add(keyframeOnB);
+        }
+
+        KeyFrame keyframeOffB = new KeyFrame(
+                Duration.seconds(2 / beatPerSecond),
+                actionEvent -> {
+                });
+        listKeyFrames.add(keyframeOffB);
+
+        return listKeyFrames;
+    }
+
+    private String demandeOuiNon() {
+        String str = sc.nextLine();
+        while (!str.equals("oui") && !str.equals("non")) {
+            System.out.println("Veuillez repondre par oui ou non svp :");
+            str = sc.nextLine();
+        }
+        return str;
+    }
+
+    private static boolean checkIfExists(String[] myStringArray, String stringToLocate) {
+        for (String element : myStringArray) {
+            if (element.equals(stringToLocate)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

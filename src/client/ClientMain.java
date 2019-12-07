@@ -1,9 +1,11 @@
 package client;
 
+import javafx.animation.Animation;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import message.Message;
 
@@ -29,11 +31,17 @@ public class ClientMain extends Application {
         ArrayList<Voix> activatedVoix = client.gestionVoix(morceau, root);
         client.gestionTechniques();
 
-        Timeline timeline = new Timeline();
-        timeline.getKeyFrames().addAll(client.createKeyFrame(activatedVoix));
+        Timeline timelineLyrics = new Timeline();
+        timelineLyrics.getKeyFrames().addAll(client.createKeyFrame(activatedVoix));
 
         //Creating a scene object
-        Scene scene = new Scene(root, 800, 400);
+        Scene scene = new Scene(root, 1900, 800, Color.web("#bdc3c7"));
+
+        Sequencer sequencer = client.initSequencer(morceau.getMidiFile(), tempo);
+
+        Timeline timelineanimation = new Timeline();
+        timelineanimation.getKeyFrames().addAll(client.gestionEffets(root, sequencer));
+        timelineanimation.setCycleCount(Animation.INDEFINITE);
 
         //Setting title to the Stage
         stage.setTitle("PolyKaraoke");
@@ -44,13 +52,15 @@ public class ClientMain extends Application {
         //Displaying the contents of the stage
         stage.show();
 
-        Sequencer sequencer = client.launchMidi(morceau.getMidiFile(), tempo);
-        timeline.play();
+        timelineLyrics.play();
+        timelineanimation.play();
+        sequencer.start();
+
 
     }
 
     @Override
-    public void stop(){
+    public void stop() {
         System.exit(0);
     }
 

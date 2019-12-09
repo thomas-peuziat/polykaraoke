@@ -41,7 +41,11 @@ class Client {
         return morceauChoisi;
     }
 
-    AbstractMap.SimpleEntry<String, Message> serverCommunication(final String serverHost) {
+    AbstractMap.SimpleEntry<String, Message> serverCommunication() {
+
+        System.out.println("Veuillez saisir une IP valide : ");
+
+        final String serverHost  = sc.nextLine();
         Socket socketOfClient;
         ObjectInputStream in;
         ObjectOutputStream out;

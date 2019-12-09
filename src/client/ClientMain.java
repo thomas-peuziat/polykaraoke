@@ -18,7 +18,7 @@ public class ClientMain extends Application {
     public void start(Stage stage) {
 
         Client client = new Client("./files/client/", 9999);
-        AbstractMap.SimpleEntry<String, Message> pair = new AbstractMap.SimpleEntry<>(client.serverCommunication("localhost"));
+        AbstractMap.SimpleEntry<String, Message> pair = new AbstractMap.SimpleEntry<>(client.serverCommunication());
 
         Morceau morceau = new Morceau();
         float tempo = client.choixTempo();

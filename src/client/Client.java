@@ -244,7 +244,7 @@ class Client {
         String str = demandeOuiNon();
 
         if (str.equals("non")) {
-            Circle circle = new Circle(1700, 600, 20, Color.RED);
+            Circle circle = new Circle(1000, 600, 20, Color.RED);
             group.getChildren().add(circle);
 
             KeyFrame keyframeOnA = new KeyFrame(

@@ -1,0 +1,10 @@
+# IntelliJ
+out
+polykaraoke.iml
+.idea
+
+# MacOS
+.DS_Store
+
+# Fichiers temporaires
+files
